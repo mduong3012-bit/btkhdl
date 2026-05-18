@@ -71,4 +71,4 @@ if uploaded_file is not None:
     st.dataframe(fraud_list)
 
 else:
-    st.info("Nhắc nhở: Vui lòng kéo thả hoặc chọn file để bắt đầu phân tích.")
+    st.info("Nhắc nhở: Vui lòng kéo thả hoặc chọn file `Bt khdl - dal.xlsx - Sheet1.csv` để bắt đầu phân tích.")
