@@ -12,12 +12,41 @@ st.title("🛡️ Ứng dụng Phát hiện Giao dịch Bất thường (Anomaly
 st.write("Hệ thống sử dụng thuật toán **Isolation Forest** để phân tích và phát hiện các giao dịch đáng ngờ.")
 
 # 1. Thành phần tải file lên giao diện web
-uploaded_file = st.file_uploader("Tải lên file dữ liệu giao dịch của bạn (.csv)", type=["csv"])
+uploaded_file = st.file_uploader("Tải lên file dữ liệu giao dịch của bạn (.csv hoặc .xlsx)", type=["csv", "xlsx"])
 
 if uploaded_file is not None:
-    # Đọc dữ liệu
-    df = pd.read_csv(uploaded_file)
+    # Đọc dữ liệu với hỗ trợ CSV và Excel
+    def load_file(file_obj):
+        file_name = file_obj.name.lower()
+        
+        # Xử lý file Excel
+        if file_name.endswith('.xlsx'):
+            try:
+                return pd.read_excel(file_obj, engine='openpyxl')
+            except Exception as e:
+                st.error(f"Lỗi đọc file Excel: {e}")
+                return None
+        
+        # Xử lý file CSV
+        file_obj.seek(0)
+        try:
+            return pd.read_csv(file_obj)
+        except UnicodeDecodeError:
+            file_obj.seek(0)
+            return pd.read_csv(file_obj, encoding='latin1')
+        except pd.errors.ParserError:
+            file_obj.seek(0)
+            try:
+                return pd.read_csv(file_obj, sep=None, engine='python', on_bad_lines='warn')
+            except pd.errors.ParserError:
+                file_obj.seek(0)
+                return pd.read_csv(file_obj, sep=';', engine='python', on_bad_lines='warn')
+
+    df = load_file(uploaded_file)
     
+    if df is None:
+        st.stop()
+
     st.success("Tải dữ liệu lên thành công!")
     
     # Hiển thị dữ liệu thô dạng bảng trên giao diện
